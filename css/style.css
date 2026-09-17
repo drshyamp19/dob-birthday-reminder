@@ -1,0 +1,98 @@
+/* Custom Styles & Marathi Typography */
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --accent: #F43F5E;
+  --success: #10B981;
+}
+
+body {
+  font-family: 'Mukta', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.num-font {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* Glassmorphism */
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .glass-card {
+  background: rgba(30, 41, 59, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* Festive celebration bounce */
+@keyframes cakeWiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-6deg) scale(1.08); }
+  75% { transform: rotate(6deg) scale(1.08); }
+}
+
+.cake-anim {
+  display: inline-block;
+  animation: cakeWiggle 2.5s infinite ease-in-out;
+}
+
+/* Pulse badge */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.05); }
+}
+
+.pulse-badge {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* Modal backdrop fade */
+.modal-backdrop {
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Smooth Tab Underline */
+.tab-btn.active {
+  color: #4F46E5;
+  border-bottom: 2px solid #4F46E5;
+  font-weight: 700;
+}
+.dark .tab-btn.active {
+  color: #818CF8;
+  border-bottom: 2px solid #818CF8;
+}
+
+/* Card hover elevation */
+.contact-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.contact-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}

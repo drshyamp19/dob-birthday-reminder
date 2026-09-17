@@ -1,0 +1,24 @@
+{
+  "name": "वाढदिवस व संपर्क व्यवस्थापन (DOB & Birthday Reminder)",
+  "short_name": "वाढदिवस",
+  "description": "वैयक्तिक संपर्क आणि वाढदिवस स्मरण प्रणाली - Personal Contact & Birthday Management System",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#4F46E5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

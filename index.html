@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="mr" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>वाढदिवस व संपर्क व्यवस्थापन (DOB & Birthday Reminder)</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="वाढदिवस">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon-192.svg">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen pb-24 md:pb-12 transition-colors duration-200">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <!-- Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-rose-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <span class="text-xl cake-anim">🎂</span>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight flex items-center gap-2">
+            <span>वाढदिवस स्मरण</span>
+            <span class="hidden sm:inline-block text-xs px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-medium">DOB App</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Personal Contact & Birthday Management</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons Right -->
+      <div class="flex items-center gap-2">
+        <!-- Live Firebase / Demo Status Pill -->
+        <button id="btnConnectionStatus" class="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 transition-all hover:bg-amber-100">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+          <span id="txtConnectionStatus">डेमो मोड</span>
+        </button>
+
+        <!-- Notification Request Button -->
+        <button id="btnEnableNotif" title="सूचना चालू करा" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i data-lucide="bell" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Dark Mode Toggle -->
+        <button id="btnThemeToggle" title="थीम बदला" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+          <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-amber-400"></i>
+        </button>
+
+        <!-- Settings Button -->
+        <button id="btnOpenSettings" title="सेटिंग्ज व बॅकअप" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Add Contact (Desktop) -->
+        <button id="btnOpenAddModalDesk" class="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-md shadow-brand-600/30 transition">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span>नवीन संपर्क</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- 1. TODAY'S CELEBRATION HERO BANNER (shown dynamically if today has birthdays) -->
+    <div id="todayCelebrationBanner" class="hidden relative overflow-hidden rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-brand-600 text-white p-6 shadow-xl shadow-rose-500/20">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🎉</span>
+            <h2 class="text-xl md:text-2xl font-extrabold tracking-wide">आज वाढदिवस आहे! (Today's Birthdays)</h2>
+          </div>
+          <p id="todayCelebrationNames" class="text-rose-100 text-base md:text-lg font-medium"></p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="btnTriggerConfetti" class="px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-sm font-bold flex items-center gap-2 transition">
+            <span>🎊 फटाके / Confetti</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. SUMMARY STATS CARDS -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+      <!-- Today -->
+      <div onclick="window.switchTab('today')" class="cursor-pointer glass-card rounded-2xl p-4 flex flex-col justify-between hover:border-rose-300 dark:hover:border-rose-700 transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400">आज वाढदिवस</span>
+          <span class="p-2 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
+            <i data-lucide="cake" class="w-4 h-4"></i>
+          </span>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span id="statTodayCount" class="text-2xl md:text-3xl font-black text-rose-600 dark:text-rose-400 num-font">0</span>
+          <span class="text-xs text-rose-600 font-semibold">Today</span>
+        </div>
+      </div>
+
+      <!-- Tomorrow -->
+      <div onclick="window.switchTab('tomorrow')" class="cursor-pointer glass-card rounded-2xl p-4 flex flex-col justify-between hover:border-amber-300 dark:hover:border-amber-700 transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400">उद्या वाढदिवस</span>
+          <span class="p-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+          </span>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span id="statTomorrowCount" class="text-2xl md:text-3xl font-black text-amber-600 dark:text-amber-400 num-font">0</span>
+          <span class="text-xs text-amber-600 font-semibold">Tomorrow</span>
+        </div>
+      </div>
+
+      <!-- This Month -->
+      <div onclick="window.switchTab('this_month')" class="cursor-pointer glass-card rounded-2xl p-4 flex flex-col justify-between hover:border-brand-300 dark:hover:border-brand-700 transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400">या महिन्यातील</span>
+          <span class="p-2 rounded-xl bg-brand-100 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+          </span>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span id="statMonthCount" class="text-2xl md:text-3xl font-black text-brand-600 dark:text-brand-400 num-font">0</span>
+          <span class="text-xs text-brand-600 font-semibold">This Month</span>
+        </div>
+      </div>
+
+      <!-- Total Contacts -->
+      <div onclick="window.switchTab('all')" class="cursor-pointer glass-card rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-300 dark:hover:border-emerald-700 transition">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400">एकूण संपर्क</span>
+          <span class="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+            <i data-lucide="users" class="w-4 h-4"></i>
+          </span>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span id="statTotalCount" class="text-2xl md:text-3xl font-black text-emerald-600 dark:text-emerald-400 num-font">0</span>
+          <span class="text-xs text-emerald-600 font-semibold">Total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. SEARCH & CATEGORY FILTER -->
+    <div class="space-y-3">
+      <!-- Search Input -->
+      <div class="relative">
+        <i data-lucide="search" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="नावाने, मोबाईल नंबरने किंवा जन्मतारखेने शोधा (उदा. अमोल, 9822, 15/09)..." 
+          class="w-full pl-11 pr-10 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm shadow-sm transition"
+        >
+        <button id="btnClearSearch" class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs font-semibold">
+        <button data-category="सर्व" class="cat-pill active px-3.5 py-1.5 rounded-full border border-brand-500 bg-brand-500 text-white shadow-sm transition whitespace-nowrap">सर्व</button>
+        <button data-category="कुटुंब" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition whitespace-nowrap">कुटुंब</button>
+        <button data-category="मित्र" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition whitespace-nowrap">मित्र</button>
+        <button data-category="नातेवाईक" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition whitespace-nowrap">नातेवाईक</button>
+        <button data-category="सहकारी" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition whitespace-nowrap">सहकारी</button>
+        <button data-category="इतर" class="cat-pill px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition whitespace-nowrap">इतर</button>
+      </div>
+    </div>
+
+    <!-- 4. SECTION TABS (आजचे, उद्याचे, या महिन्यातील, सर्व) -->
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+      <div class="flex items-center gap-1 sm:gap-4 text-sm font-semibold">
+        <button data-tab="today" class="tab-btn active px-3 py-2.5 flex items-center gap-1.5 transition">
+          <span>🎂 आजचे</span>
+          <span id="tabBadgeToday" class="text-xs px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-600 font-bold num-font">0</span>
+        </button>
+        <button data-tab="tomorrow" class="tab-btn px-3 py-2.5 flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition">
+          <span>⏰ उद्याचे</span>
+          <span id="tabBadgeTomorrow" class="text-xs px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 font-bold num-font">0</span>
+        </button>
+        <button data-tab="this_month" class="tab-btn px-3 py-2.5 flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition">
+          <span>📆 या महिन्यातील</span>
+          <span id="tabBadgeMonth" class="text-xs px-1.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-600 font-bold num-font">0</span>
+        </button>
+        <button data-tab="all" class="tab-btn px-3 py-2.5 flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition">
+          <span>👥 सर्व</span>
+          <span id="tabBadgeAll" class="text-xs px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold num-font">0</span>
+        </button>
+      </div>
+
+      <!-- Sort dropdown (For 'All' tab) -->
+      <div id="sortContainer" class="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">
+        <i data-lucide="arrow-up-down" class="w-3.5 h-3.5"></i>
+        <select id="selectSort" class="bg-transparent text-slate-700 dark:text-slate-300 font-medium focus:outline-none cursor-pointer">
+          <option value="upcoming">पुढील वाढदिवस (Upcoming)</option>
+          <option value="name">नावाने (A-Z)</option>
+          <option value="age">वयाने (Age)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 5. CONTACT CARDS LIST -->
+    <div id="contactsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Contact Cards rendered dynamically by JS -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center space-y-3">
+      <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl">
+        🎈
+      </div>
+      <h3 class="text-base font-bold text-slate-700 dark:text-slate-200">कोणतीही नोंद आढळली नाही</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs">कृपया नवीन संपर्क जोडा किंवा शोध शब्द बदलून पहा.</p>
+      <button id="btnEmptyAdd" class="mt-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow transition">
+        + नवीन संपर्क जोडा
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ================= MOBILE FLOATING ACTION BUTTON (FAB) ================= -->
+  <button id="btnOpenAddModalMob" class="md:hidden fixed right-5 bottom-6 z-40 w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 to-rose-500 hover:from-brand-700 hover:to-rose-600 text-white flex items-center justify-center shadow-lg shadow-brand-600/40 active:scale-95 transition">
+    <i data-lucide="plus" class="w-7 h-7"></i>
+  </button>
+
+  <!-- ================= MODAL: ADD / EDIT CONTACT ================= -->
+  <div id="modalContact" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-150">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl" id="modalContactIcon">👤</span>
+          <h3 id="modalContactTitle" class="text-base font-bold text-slate-800 dark:text-slate-100">नवीन संपर्क माहिती जोडा</h3>
+        </div>
+        <button id="btnCloseContactModal" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="formContact" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <input type="hidden" id="inputContactId">
+
+        <!-- Name (नाव) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">पूर्ण नाव (Full Name) *</label>
+          <input 
+            type="text" 
+            id="inputName" 
+            required 
+            placeholder="उदा. अमोल संभाजी पाटील" 
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+          >
+        </div>
+
+        <!-- Date of Birth (जन्मतारीख) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">जन्मतारीख (Date of Birth) *</label>
+          <input 
+            type="date" 
+            id="inputDob" 
+            required 
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm num-font"
+          >
+        </div>
+
+        <!-- Birth Time & Birth Place -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">जन्मवेळ (Birth Time - पर्यायी)</label>
+            <input 
+              type="text" 
+              id="inputBirthTime" 
+              placeholder="उदा. 10:30 AM" 
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">जन्मस्थळ (Birth Place - पर्यायी)</label>
+            <input 
+              type="text" 
+              id="inputBirthPlace" 
+              placeholder="उदा. पुणे / सातारा" 
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+            >
+          </div>
+        </div>
+
+        <!-- Mobile Number & Category -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">मोबाईल / व्हॉट्सॲप नंबर</label>
+            <input 
+              type="tel" 
+              id="inputMobile" 
+              placeholder="उदा. 9822012345" 
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm num-font"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">वर्गवारी (Category)</label>
+            <select 
+              id="inputCategory" 
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm cursor-pointer"
+            >
+              <option value="मित्र">मित्र (Friend)</option>
+              <option value="कुटुंब">कुटुंब (Family)</option>
+              <option value="नातेवाईक">नातेवाईक (Relative)</option>
+              <option value="सहकारी">सहकारी (Colleague)</option>
+              <option value="व्यवसाय">व्यवसाय (Business)</option>
+              <option value="इतर">इतर (Other)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Additional Notes (अतिरिक्त माहिती) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">अतिरिक्त माहिती / नोट्स</label>
+          <textarea 
+            id="inputNotes" 
+            rows="2" 
+            placeholder="उदा. शालेय मित्र, ब्लड ग्रुप B+, आवडती भेटवस्तू..." 
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+          ></textarea>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" id="btnCancelContact" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            रद्द करा
+          </button>
+          <button type="submit" id="btnSaveContact" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-md shadow-brand-600/30 transition">
+            माहिती जतन करा (Save)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: WHATSAPP WISH GENERATOR ================= -->
+  <div id="modalWhatsApp" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-150">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/40">
+        <div class="flex items-center gap-2.5 text-emerald-800 dark:text-emerald-300">
+          <span class="text-2xl">📱</span>
+          <div>
+            <h3 class="text-base font-bold">व्हॉट्सॲप शुभेच्छा संदेश</h3>
+            <p id="waModalRecipient" class="text-xs text-emerald-600 dark:text-emerald-400"></p>
+          </div>
+        </div>
+        <button id="btnCloseWaModal" class="p-1.5 rounded-lg text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <!-- Template Selection -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">संदेशाचा प्रकार (Message Template):</label>
+          <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+            <button data-wa-tpl="formal" class="wa-tpl-btn active px-3 py-2 rounded-xl border border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 transition text-left">
+              👔 आदरणीय (Formal)
+            </button>
+            <button data-wa-tpl="friendly" class="wa-tpl-btn px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 transition text-left">
+              🎉 मित्र (Friendly)
+            </button>
+            <button data-wa-tpl="blessings" class="wa-tpl-btn px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 transition text-left">
+              🌸 आशीर्वाद (Blessings)
+            </button>
+            <button data-wa-tpl="short" class="wa-tpl-btn px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 transition text-left">
+              ⚡ छोटा संदेश (Short)
+            </button>
+          </div>
+        </div>
+
+        <!-- Editable Message Box -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-slate-700 dark:text-slate-300">संदेश मजकूर (तुम्ही बदल करू शकता):</label>
+            <button id="btnCopyWaMsg" class="text-xs text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 font-semibold">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> कॉपी करा
+            </button>
+          </div>
+          <textarea 
+            id="txtWaMessage" 
+            rows="6" 
+            class="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm leading-relaxed"
+          ></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+          <button id="btnCloseWaModal2" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            बंद करा
+          </button>
+          <a id="btnSendWhatsApp" href="#" target="_blank" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-md shadow-emerald-600/30 flex items-center gap-2 transition">
+            <span>📱 WhatsApp उघडा व पाठवा</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: SETTINGS & FIREBASE CONFIG ================= -->
+  <div id="modalSettings" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-150">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <h3 class="text-base font-bold text-slate-800 dark:text-slate-100">सेटिंग्ज आणि बॅकअप (Settings)</h3>
+        </div>
+        <button id="btnCloseSettingsModal" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+        <!-- 1. Firebase Configuration Section -->
+        <div class="p-4 rounded-2xl border border-brand-200 dark:border-brand-900 bg-brand-50/50 dark:bg-brand-950/20 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🔥</span>
+              <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">Firebase Cloud Database</h4>
+            </div>
+            <span id="badgeFirebaseStatus" class="text-xs px-2 py-0.5 rounded-md font-bold bg-amber-200 text-amber-800">स्थानिक मोड</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            मोबाईल आणि कॉम्प्युटरमध्ये रिअल-टाईम सिंकसाठी आपले Firebase Web Config येथे जोडा.
+          </p>
+          <div>
+            <textarea 
+              id="txtFirebaseConfig" 
+              rows="4" 
+              placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "...", "storageBucket": "...", "messagingSenderId": "...", "appId": "..."}' 
+              class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+            ></textarea>
+          </div>
+          <div class="flex items-center justify-end gap-2">
+            <button id="btnClearFirebaseCfg" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition">
+              रीसेट (Demo Mode)
+            </button>
+            <button id="btnSaveFirebaseCfg" class="px-4 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow transition">
+              Firebase सेव्ह करा
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Notification Preferences -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">🔔 सूचना सेटिंग्ज (Notifications)</h4>
+          <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+            <div>
+              <p class="text-sm font-semibold">१ दिवस आधी पूर्वसूचना (1 Day Before)</p>
+              <p class="text-xs text-slate-500">वाढदिवसाच्या आदल्या दिवशी रिमाइंडर पाठवा</p>
+            </div>
+            <input type="checkbox" id="chkNotify1Day" checked class="w-4 h-4 text-brand-600 rounded">
+          </div>
+          <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+            <div>
+              <p class="text-sm font-semibold">वाढदिवसाच्या दिवशी सूचना (On Birthday)</p>
+              <p class="text-xs text-slate-500">वाढदिवसाच्या दिवशी सकाळी ९:०० वाजता आठवण</p>
+            </div>
+            <input type="checkbox" id="chkNotifyOnDay" checked class="w-4 h-4 text-brand-600 rounded">
+          </div>
+        </div>
+
+        <!-- 3. Export & Import Backup -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">💾 बॅकअप आणि व्यवस्थापन (Backup)</h4>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnExportCSV" class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center justify-center gap-2 transition">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+              <span>Excel/CSV डाऊनलोड</span>
+            </button>
+            <button id="btnExportJSON" class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center justify-center gap-2 transition">
+              <i data-lucide="download" class="w-4 h-4 text-brand-600"></i>
+              <span>पूर्ण बॅकअप (JSON)</span>
+            </button>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">CSV फाईलवरून संपर्क अपलोड करा:</label>
+            <input type="file" id="inputImportCSV" accept=".csv" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-50 dark:file:bg-brand-950 file:text-brand-700 dark:file:text-brand-300 hover:file:bg-brand-100">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: DELETE CONFIRMATION ================= -->
+  <div id="modalDelete" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 p-6 text-center space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center text-2xl">
+        ⚠️
+      </div>
+      <div>
+        <h4 class="text-base font-bold text-slate-800 dark:text-slate-100">खात्री करा</h4>
+        <p id="txtDeletePrompt" class="text-xs text-slate-500 dark:text-slate-400 mt-1">तुम्हाला ही नोंद कायमची काढून टाकायची आहे का?</p>
+      </div>
+      <div class="flex items-center justify-center gap-3">
+        <button id="btnCancelDelete" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          नाही, राहू द्या
+        </button>
+        <button id="btnConfirmDelete" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-md shadow-rose-600/30 transition">
+          होय, डिलीट करा
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-20 md:bottom-6 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Load Main Application Script -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

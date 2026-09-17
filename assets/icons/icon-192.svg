@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="grad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="42" fill="url(#grad192)"/>
+  <!-- Candle Flame -->
+  <circle cx="96" cy="56" r="10" fill="#FCD34D"/>
+  <path d="M96 40 Q99 48 96 54 Q93 48 96 40" fill="#F59E0B"/>
+  <!-- Candle Stick -->
+  <rect x="92" y="62" width="8" height="22" rx="3" fill="#FFFFFF"/>
+  <!-- Cake Top Layer -->
+  <rect x="56" y="84" width="80" height="28" rx="8" fill="#F43F5E"/>
+  <path d="M56 92 Q66 100 76 92 Q86 100 96 92 Q106 100 116 92 Q126 100 136 92 L136 84 L56 84 Z" fill="#FFF" opacity="0.4"/>
+  <!-- Cake Bottom Layer -->
+  <rect x="42" y="112" width="108" height="34" rx="10" fill="#FB7185"/>
+  <path d="M42 120 Q55 130 68 120 Q81 130 94 120 Q107 130 120 120 Q133 130 150 120 L150 112 L42 112 Z" fill="#FFF" opacity="0.4"/>
+  <!-- Cake Plate -->
+  <rect x="32" y="146" width="128" height="10" rx="5" fill="#E2E8F0"/>
+</svg>
